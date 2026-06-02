@@ -19,25 +19,25 @@ def headers():
 
 def get_lol_matches():
     return requests.get(
-        "https://api.pandascore.co/lol/matches/upcoming",
+        "https://api.pandascore.co/lol/matches",
         headers=headers()
     ).json()
 
 def get_cs2_matches():
     return requests.get(
-        "https://api.pandascore.co/csgo/matches/upcoming",
+        "https://api.pandascore.co/csgo/matches",
         headers=headers()
     ).json()
 
 def get_valorant_matches():
     return requests.get(
-        "https://api.pandascore.co/valorant/matches/upcoming",
+        "https://api.pandascore.co/valorant/matches",
         headers=headers()
     ).json()
 
 def get_dota_matches():
     return requests.get(
-        "https://api.pandascore.co/dota2/matches/upcoming",
+        "https://api.pandascore.co/dota2/matches",
         headers=headers()
     ).json()
 
@@ -59,6 +59,30 @@ def format_match(match):
     if len(opp) > 1:
         team2 = opp[1].get("opponent", {}).get("name", "TBD")
 
+    # =========================
+    # GLOBAL MATCH SCORE
+    # =========================
+    results = match.get("results") or []
+    score1 = results[0].get("score", 0) if len(results) > 0 else 0
+    score2 = results[1].get("score", 0) if len(results) > 1 else 0
+
+    # =========================
+    # MAP / GAME TRACKING
+    # =========================
+    games = match.get("games") or []
+
+    maps = []
+    for i, g in enumerate(games, start=1):
+        maps.append({
+            "map": i,
+            "status": g.get("status", "pending"),
+            "winner": (
+                g.get("winner", {}).get("name")
+                if isinstance(g.get("winner"), dict)
+                else None
+            )
+        })
+
     return {
         "id": match.get("id"),
         "team1": team1,
@@ -66,6 +90,14 @@ def format_match(match):
         "time": match.get("scheduled_at", "TBD"),
         "league": match.get("league", {}).get("name", "Unknown"),
         "status": (match.get("status") or "UPCOMING").upper(),
+
+        # overall score
+        "score1": score1,
+        "score2": score2,
+
+        # NEW: map breakdown
+        "maps": maps,
+
         "url": f"https://www.google.com/search?q={team1}+vs+{team2}+esports"
     }
 
@@ -313,19 +345,32 @@ async function loadLive() {
     const data = await res.json();
 
     function render(list) {
-        if (!list || list.length === 0) {
-            return "No live matches";
-        }
-
-        return list.map(m => `
-            <div class="match">
-                <a href="${m.url}" target="_blank" style="color:white;text-decoration:none;">
-                    🔴 <b>${m.team1} vs ${m.team2}</b>
-                </a>
-                <div class="small">${m.league}</div>
-            </div>
-        `).join("");
+    if (!list || list.length === 0) {
+        return "No live matches";
     }
+
+    return list.map(m => `
+        <div class="match">
+            <a href="${m.url}" target="_blank" style="color:white;text-decoration:none;">
+                🔴 <b>${m.team1} ${m.score1} - ${m.score2} ${m.team2}</b>
+            </a>
+
+            <div class="small">${m.league}</div>
+
+            <div style="margin-top:8px;font-size:12px;color:#aaa;">
+                ${
+                    m.maps && m.maps.length > 0
+                        ? m.maps.map(g =>
+                            `Map ${g.map}: ${
+                                g.winner ? "✔ " + g.winner : "⏳ Live / Pending"
+                            }`
+                        ).join("<br>")
+                        : "No map data yet"
+                }
+            </div>
+        </div>
+    `).join("");
+}
 
     document.getElementById("cs2").innerHTML = render(data.cs2);
     document.getElementById("valorant").innerHTML = render(data.valorant);

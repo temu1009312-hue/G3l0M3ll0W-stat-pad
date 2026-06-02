@@ -5,35 +5,41 @@ import os
 app = Flask(__name__)
 
 # =========================
-# TOKEN (FIXED)
+# TOKENS
 # =========================
 
 PANDASCORE_TOKEN = os.environ.get("PANDASCORE_TOKEN")
-DISCORD_TOKEN = os.environ.get("DISCORD_TOKEN")
 
 # =========================
 # API CALLS
 # =========================
 
+def headers():
+    return {"Authorization": f"Bearer {PANDASCORE_TOKEN}"}
+
 def get_lol_matches():
-    url = "https://api.pandascore.co/lol/matches/upcoming"
-    headers = {"Authorization": f"Bearer {PANDASCORE_TOKEN}"}
-    return requests.get(url, headers=headers).json()
+    return requests.get(
+        "https://api.pandascore.co/lol/matches/upcoming",
+        headers=headers()
+    ).json()
 
 def get_cs2_matches():
-    url = "https://api.pandascore.co/csgo/matches/upcoming"
-    headers = {"Authorization": f"Bearer {PANDASCORE_TOKEN}"}
-    return requests.get(url, headers=headers).json()
+    return requests.get(
+        "https://api.pandascore.co/csgo/matches/upcoming",
+        headers=headers()
+    ).json()
 
 def get_valorant_matches():
-    url = "https://api.pandascore.co/valorant/matches/upcoming"
-    headers = {"Authorization": f"Bearer {PANDASCORE_TOKEN}"}
-    return requests.get(url, headers=headers).json()
+    return requests.get(
+        "https://api.pandascore.co/valorant/matches/upcoming",
+        headers=headers()
+    ).json()
 
 def get_dota_matches():
-    url = "https://api.pandascore.co/dota2/matches/upcoming"
-    headers = {"Authorization": f"Bearer {PANDASCORE_TOKEN}"}
-    return requests.get(url, headers=headers).json()
+    return requests.get(
+        "https://api.pandascore.co/dota2/matches/upcoming",
+        headers=headers()
+    ).json()
 
 # =========================
 # FORMAT MATCH
@@ -48,13 +54,10 @@ def format_match(match):
     team1 = "TBD"
     team2 = "TBD"
 
-    try:
-        if len(opp) > 0:
-            team1 = opp[0].get("opponent", {}).get("name", "TBD")
-        if len(opp) > 1:
-            team2 = opp[1].get("opponent", {}).get("name", "TBD")
-    except:
-        pass
+    if len(opp) > 0:
+        team1 = opp[0].get("opponent", {}).get("name", "TBD")
+    if len(opp) > 1:
+        team2 = opp[1].get("opponent", {}).get("name", "TBD")
 
     return {
         "id": match.get("id"),
@@ -62,12 +65,12 @@ def format_match(match):
         "team2": team2,
         "time": match.get("scheduled_at", "TBD"),
         "league": match.get("league", {}).get("name", "Unknown"),
-        "status": match.get("status", "UPCOMING").upper(),
+        "status": (match.get("status") or "UPCOMING").upper(),
         "url": f"https://www.google.com/search?q={team1}+vs+{team2}+esports"
     }
 
 # =========================
-# ROUTES
+# HTML TEMPLATE
 # =========================
 
 def render_matches(title, endpoint):
@@ -83,11 +86,9 @@ body {{
     color:white;
     font-family:Arial;
 }}
-
 .container {{
     padding:20px;
 }}
-
 .match {{
     background:#1a1a1a;
     padding:12px;
@@ -97,14 +98,13 @@ body {{
     text-decoration:none;
     color:white;
 }}
-
 .match:hover {{
     background:#222;
 }}
 </style>
 </head>
-<body>
 
+<body>
 <div class="container">
     <h1>{title}</h1>
     <div id="matches">Loading...</div>
@@ -116,16 +116,269 @@ async function load() {{
     const data = await res.json();
 
     document.getElementById("matches").innerHTML =
-    data.map(m => `
-        <a class="match" href="${{m.url}}" target="_blank">
-            <b>${{m.team1}} vs ${{m.team2}}</b><br>
-            <small>${{m.league}} • ${{m.time}}</small>
-        </a>
-    `).join("");
+        data.map(m => `
+            <a class="match" href="${{m.url}}" target="_blank">
+                <b>${{m.team1}} vs ${{m.team2}}</b><br>
+                <small>${{m.league}} • ${{m.time}}</small>
+            </a>
+        `).join("");
 }}
 
 load();
 setInterval(load, 20000);
+</script>
+
+</body>
+</html>
+"""
+
+# =========================
+# ROUTES
+# =========================
+
+@app.route("/")
+def home():
+    return """
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Stat Pad</title>
+<style>
+body {
+    margin:0;
+    background:#0a0a0a;
+    color:white;
+    font-family:Arial;
+}
+
+.sidebar {
+    width:220px;
+    height:100vh;
+    background:#111;
+    position:fixed;
+    padding:20px;
+}
+
+.sidebar a {
+    display:block;
+    color:white;
+    padding:10px;
+    text-decoration:none;
+}
+
+.main {
+    margin-left:240px;
+    padding:30px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.card {
+    display: block;
+    padding: 18px;
+    background: #151515;
+    border-radius: 12px;
+    border: 1px solid #222;
+    color: white;
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+.card:hover {
+    transform: scale(1.05);
+    border-color: #00ff99;
+    box-shadow: 0 0 12px rgba(0,255,153,0.2);
+    153,0.2);
+}
+
+.title {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.desc {
+    font-size: 13px;
+    color: #aaa;
+    margin-top: 6px;
+}
+
+.tag {
+    margin-top: 10px;
+    display: inline-block;
+    padding: 4px 8px;
+    font-size: 11px;
+    border-radius: 5px;
+    background: #00ff99;
+    color: black;
+    font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+    <h2>Stat Pad</h2>
+    <a href="/">Home</a>
+    <a href="/live-dashboard">🔴 Live Dashboard</a>
+    <a href="/lol">LoL</a>
+    <a href="/cs2">CS2</a>
+    <a href="/valorant">Valorant</a>
+    <a href="/dota">Dota 2</a>
+</div>
+
+<div class="main">
+
+    <div class="hero">
+        G3l0M3ll0W's Stat Pad
+    </div>
+
+    <div class="subtext">
+        Live esports tracker
+    </div>
+
+<div class="grid">
+
+    <a href="https://hltv.org/" class="card" target="_blank">
+        🎮 CS2 (HLTV)
+        <p>Pro CS2 matches & stats</p>
+    </a>
+
+    <a href="https://www.vlr.gg/" class="card" target="_blank">
+        ⚡ Valorant (VLR.gg)
+        <p>VCT / Masters / Champions</p>
+    </a>
+
+    <a href="https://andydanger.github.io/live-lol-esports/#/" class="card" target="_blank">
+        🎮 League of Legends
+        <p>Live LoL esports tracker</p>
+    </a>
+
+    <a href="https://cyberscore.me.uk/" class="card" target="_blank">
+        🧠 Dota 2 (CyberScore)
+        <p>Stats & match tracking</p>
+    </a>
+
+</div>
+
+</body>
+</html>
+"""
+
+def render_live_dashboard():
+    return """
+<!DOCTYPE html>
+<html>
+<head>
+<title>Live Esports Dashboard</title>
+
+<style>
+body {
+    margin:0;
+    font-family:Arial;
+    background:#0a0a0a;
+    color:white;
+}
+
+.header {
+    padding:20px;
+    font-size:28px;
+    font-weight:bold;
+    color:#00ff99;
+}
+
+.container {
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap:15px;
+    padding:20px;
+}
+
+.card {
+    background:#151515;
+    border:1px solid #222;
+    border-radius:12px;
+    padding:15px;
+}
+
+.live {
+    color:red;
+    font-weight:bold;
+    animation:pulse 1.2s infinite;
+}
+
+@keyframes pulse {
+    0% {opacity:1;}
+    50% {opacity:0.4;}
+    100% {opacity:1;}
+}
+
+.match {
+    padding:10px;
+    border-bottom:1px solid #222;
+}
+
+.small {
+    color:#aaa;
+    font-size:12px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">🔴 LIVE ESPORTS DASHBOARD</div>
+
+<div class="container">
+
+    <div class="card">
+        <div class="live">CS2 LIVE</div>
+        <div id="cs2">Loading...</div>
+    </div>
+
+    <div class="card">
+        <div class="live">Valorant LIVE</div>
+        <div id="valorant">Loading...</div>
+    </div>
+
+    <div class="card">
+        <div class="live">League of Legends LIVE</div>
+        <div id="lol">Loading...</div>
+    </div>
+
+    <div class="card">
+        <div class="live">Dota 2 LIVE</div>
+        <div id="dota">Loading...</div>
+    </div>
+
+</div>
+
+<script>
+async function loadLive() {
+    const res = await fetch("/live_counts");
+    const counts = await res.json();
+
+    document.getElementById("cs2").innerHTML =
+        counts.cs2 > 0 ? "🔥 " + counts.cs2 + " live matches" : "No live matches";
+
+    document.getElementById("valorant").innerHTML =
+        counts.valorant > 0 ? "🔥 " + counts.valorant + " live matches" : "No live matches";
+
+    document.getElementById("lol").innerHTML =
+        counts.lol > 0 ? "🔥 " + counts.lol + " live matches" : "No live matches";
+
+    document.getElementById("dota").innerHTML =
+        counts.dota > 0 ? "🔥 " + counts.dota + " live matches" : "No live matches";
+}
+
+loadLive();
+setInterval(loadLive, 15000);
 </script>
 
 </body>
@@ -148,191 +401,32 @@ def valorant_page():
 def dota_page():
     return render_matches("Dota 2", "/tier1/dota")
 
+@app.route("/live-dashboard")
+def live_dashboard():
+    return render_live_dashboard()
+
+# =========================
+# JSON ENDPOINTS
+# =========================
+
 @app.route("/tier1/lol")
 def tier1_lol():
-    return jsonify([
-    fm for fm in (format_match(m) for m in get_lol_matches())
-    if fm is not None
-])
+    return jsonify([format_match(m) for m in get_lol_matches() if format_match(m)])
 
 @app.route("/tier1/cs2")
 def tier1_cs2():
-    return jsonify([
-    fm for fm in (format_match(m) for m in get_cs2_matches())
-    if fm is not None
-])
+    return jsonify([format_match(m) for m in get_cs2_matches() if format_match(m)])
 
 @app.route("/tier1/valorant")
 def tier1_valorant():
-    return jsonify([
-    fm for fm in (format_match(m) for m in get_valorant_matches())
-    if fm is not None
-])
+    return jsonify([format_match(m) for m in get_valorant_matches() if format_match(m)])
 
 @app.route("/tier1/dota")
 def tier1_dota():
-    return jsonify([
-    fm for fm in (format_match(m) for m in get_dota_matches())
-    if fm is not None
-])
+    return jsonify([format_match(m) for m in get_dota_matches() if format_match(m)])
 
 # =========================
-# HOME PAGE
-# =========================
-
-@app.route("/")
-def home():
-    return """
-<!DOCTYPE html>
-<html>
-<head>
-<title>G3l0M3ll0W Stat Pad</title>
-
-<style>
-body {
-    margin: 0;
-    background: radial-gradient(circle at top, #111 0%, #0a0a0a 70%);
-    color: white;
-    font-family: Arial;
-}
-
-/* SIDEBAR */
-.sidebar {
-    width: 220px;
-    height: 100vh;
-    background: #0f0f0f;
-    position: fixed;
-    padding: 20px;
-    border-right: 1px solid #222;
-}
-
-.sidebar h2 {
-    color: #00ff99;
-}
-
-.sidebar a {
-    display: block;
-    color: white;
-    padding: 10px;
-    text-decoration: none;
-    border-radius: 6px;
-}
-
-.sidebar a:hover {
-    background: #222;
-}
-
-/* MAIN */
-.main {
-    margin-left: 240px;
-    padding: 30px;
-}
-
-/* HERO */
-.hero {
-    font-size: 42px;
-    font-weight: bold;
-    color: #00ff99;
-    margin-bottom: 10px;
-}
-
-.subtext {
-    color: #aaa;
-    margin-bottom: 30px;
-}
-
-/* CARDS */
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 15px;
-}
-
-.card {
-    background: #151515;
-    padding: 15px;
-    border-radius: 10px;
-    border: 1px solid #222;
-    transition: 0.2s;
-}
-
-.card:hover {
-    transform: scale(1.03);
-    border-color: #00ff99;
-}
-
-.card h3 {
-    margin: 0;
-    color: #fff;
-}
-
-.tag {
-    display: inline-block;
-    padding: 3px 8px;
-    font-size: 12px;
-    border-radius: 5px;
-    margin-top: 8px;
-}
-
-.live { background: red; }
-.upcoming { background: gold; color: black; }
-.finished { background: gray; }
-</style>
-
-</head>
-
-<body>
-
-<div class="sidebar">
-    <h2>☰ Stat Pad</h2>
-    <a href="/">Home</a>
-    <a href="/lol">LoL</a>
-    <a href="/cs2">CS2</a>
-    <a href="/valorant">Valorant</a>
-    <a href="/dota">Dota 2</a>
-</div>
-
-<div class="main">
-
-    <div class="hero">G3l0M3ll0W's Stat Pad</div>
-    <div class="subtext">Live esports tracker for Tier 1 matches (LoL • CS2 • Valorant • Dota 2)</div>
-
-    <div class="grid">
-
-        <div class="card">
-            <h3>🎮 League of Legends</h3>
-            <p>View live & upcoming LCK / LEC / LCS matches</p>
-            <span class="tag upcoming">TRACKED</span>
-        </div>
-
-        <div class="card">
-            <h3>🔫 CS2</h3>
-            <p>Major tournaments & pro circuit matches</p>
-            <span class="tag upcoming">TRACKED</span>
-        </div>
-
-        <div class="card">
-            <h3>⚡ Valorant</h3>
-            <p>VCT, Masters & Champions matches</p>
-            <span class="tag upcoming">TRACKED</span>
-        </div>
-
-        <div class="card">
-            <h3>🧠 Dota 2</h3>
-            <p>The International & regional leagues</p>
-            <span class="tag upcoming">TRACKED</span>
-        </div>
-
-    </div>
-
-</div>
-
-</body>
-</html>
-"""
-
-# =========================
-# RUN (RENDER FIX)
+# RUN
 # =========================
 
 if __name__ == "__main__":

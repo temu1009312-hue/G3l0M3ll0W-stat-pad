@@ -139,6 +139,7 @@ setInterval(load, 20000);
 @app.route("/")
 def home():
     return """
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -171,12 +172,50 @@ body {
     padding:30px;
 }
 
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
 .card {
-    background:#1a1a1a;
-    padding:15px;
-    margin:10px;
-    border-radius:10px;
-    display:inline-block;
+    background: #151515;
+    padding: 18px;
+    border-radius: 12px;
+    border: 1px solid #222;
+    color: white;
+    text-decoration: none;
+    transition: 0.2s;
+    display: block;
+}
+
+.card:hover {
+    transform: scale(1.05);
+    border-color: #00ff99;
+    box-shadow: 0 0 12px rgba(0,255,153,0.2);
+}
+
+.title {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.desc {
+    font-size: 13px;
+    color: #aaa;
+    margin-top: 6px;
+}
+
+.tag {
+    margin-top: 10px;
+    display: inline-block;
+    padding: 4px 8px;
+    font-size: 11px;
+    border-radius: 5px;
+    background: #00ff99;
+    color: black;
+    font-weight: bold;
 }
 </style>
 </head>
@@ -193,12 +232,41 @@ body {
 </div>
 
 <div class="main">
-    <h1>G3l0M3ll0W Stat Pad</h1>
 
-    <div class="card"><a href="/lol">League of Legends</a></div>
-    <div class="card"><a href="/cs2">CS2</a></div>
-    <div class="card"><a href="/valorant">Valorant</a></div>
-    <div class="card"><a href="/dota">Dota 2</a></div>
+    <div class="hero">
+        G3l0M3ll0W's Stat Pad
+    </div>
+
+    <div class="subtext">
+        Live esports tracker
+    </div>
+
+<div class="grid">
+
+    <a href="/lol" class="card">
+        <div class="title">🎮 League of Legends</div>
+        <div class="desc">View live & upcoming LCK / LEC / LCS matches</div>
+        <div class="tag">TRACKED</div>
+    </a>
+
+    <a href="/cs2" class="card">
+        <div class="title">🔫 CS2</div>
+        <div class="desc">Major tournaments & pro circuit matches</div>
+        <div class="tag">TRACKED</div>
+    </a>
+
+    <a href="/valorant" class="card">
+        <div class="title">⚡ Valorant</div>
+        <div class="desc">VCT, Masters & Champions matches</div>
+        <div class="tag">TRACKED</div>
+    </a>
+
+    <a href="/dota" class="card">
+        <div class="title">🧠 Dota 2</div>
+        <div class="desc">The International & regional leagues</div>
+        <div class="tag">TRACKED</div>
+    </a>
+
 </div>
 
 </body>

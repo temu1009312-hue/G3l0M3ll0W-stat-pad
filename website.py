@@ -7,7 +7,9 @@ app = Flask(__name__)
 # =========================
 # TOKEN (FIXED)
 # =========================
-PANDASCORE_TOKEN = os.environ.get("DRf4K_eHDya98L2VqwDslktYwSL35wTqTQDmUBLG1GQrEXl7BHs")
+
+PANDASCORE_TOKEN = os.environ.get("PANDASCORE_TOKEN")
+DISCORD_TOKEN = os.environ.get("DISCORD_TOKEN")
 
 # =========================
 # API CALLS
@@ -67,6 +69,69 @@ def format_match(match):
 # =========================
 # ROUTES
 # =========================
+
+def render_matches(title, endpoint):
+    return f"""
+<!DOCTYPE html>
+<html>
+<head>
+<title>{title}</title>
+<style>
+body {{
+    margin:0;
+    background:#0a0a0a;
+    color:white;
+    font-family:Arial;
+}}
+
+.container {{
+    padding:20px;
+}}
+
+.match {{
+    background:#1a1a1a;
+    padding:12px;
+    margin:10px 0;
+    border-radius:8px;
+    display:block;
+    text-decoration:none;
+    color:white;
+}}
+
+.match:hover {{
+    background:#222;
+}}
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>{title}</h1>
+    <div id="matches">Loading...</div>
+</div>
+
+<script>
+async function load() {{
+    const res = await fetch("{endpoint}");
+    const data = await res.json();
+
+    document.getElementById("matches").innerHTML =
+    data.map(m => `
+        <a class="match" href="${{m.url}}" target="_blank">
+            <b>${{m.team1}} vs ${{m.team2}}</b><br>
+            <small>${{m.league}} • ${{m.time}}</small>
+        </a>
+    `).join("");
+}}
+
+load();
+setInterval(load, 20000);
+</script>
+
+</body>
+</html>
+"""
+
 @app.route("/lol")
 def lol_page():
     return render_matches("League of Legends", "/tier1/lol")

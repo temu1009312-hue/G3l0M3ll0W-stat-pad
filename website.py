@@ -180,20 +180,21 @@ body {
 }
 
 .card {
-    background: #151515;
+    display: block;
     padding: 18px;
+    background: #151515;
     border-radius: 12px;
     border: 1px solid #222;
     color: white;
     text-decoration: none;
     transition: 0.2s;
-    display: block;
 }
 
 .card:hover {
     transform: scale(1.05);
     border-color: #00ff99;
     box-shadow: 0 0 12px rgba(0,255,153,0.2);
+    153,0.2);
 }
 
 .title {
@@ -243,28 +244,24 @@ body {
 
 <div class="grid">
 
-    <a href="/lol" class="card">
-        <div class="title">🎮 League of Legends</div>
-        <div class="desc">View live & upcoming LCK / LEC / LCS matches</div>
-        <div class="tag">TRACKED</div>
+    <a href="https://hltv.org/" class="card" target="_blank">
+        🎮 CS2 (HLTV)
+        <p>Pro CS2 matches & stats</p>
     </a>
 
-    <a href="/cs2" class="card">
-        <div class="title">🔫 CS2</div>
-        <div class="desc">Major tournaments & pro circuit matches</div>
-        <div class="tag">TRACKED</div>
+    <a href="https://www.vlr.gg/" class="card" target="_blank">
+        ⚡ Valorant (VLR.gg)
+        <p>VCT / Masters / Champions</p>
     </a>
 
-    <a href="/valorant" class="card">
-        <div class="title">⚡ Valorant</div>
-        <div class="desc">VCT, Masters & Champions matches</div>
-        <div class="tag">TRACKED</div>
+    <a href="https://andydanger.github.io/live-lol-esports/#/" class="card" target="_blank">
+        🎮 League of Legends
+        <p>Live LoL esports tracker</p>
     </a>
 
-    <a href="/dota" class="card">
-        <div class="title">🧠 Dota 2</div>
-        <div class="desc">The International & regional leagues</div>
-        <div class="tag">TRACKED</div>
+    <a href="https://cyberscore.me.uk/" class="card" target="_blank">
+        🧠 Dota 2 (CyberScore)
+        <p>Stats & match tracking</p>
     </a>
 
 </div>

@@ -190,41 +190,93 @@ def home():
 
 <style>
 body {
-    margin:0;
-    background:#0a0a0a;
-    color:white;
-    font-family:Arial;
+    margin: 0;
+    background: radial-gradient(circle at top, #111 0%, #0a0a0a 70%);
+    color: white;
+    font-family: Arial;
 }
 
+/* SIDEBAR */
 .sidebar {
-    width:220px;
-    height:100vh;
-    background:#111;
-    position:fixed;
-    padding:20px;
+    width: 220px;
+    height: 100vh;
+    background: #0f0f0f;
+    position: fixed;
+    padding: 20px;
+    border-right: 1px solid #222;
+}
+
+.sidebar h2 {
+    color: #00ff99;
 }
 
 .sidebar a {
-    display:block;
-    color:white;
-    padding:10px;
-    text-decoration:none;
+    display: block;
+    color: white;
+    padding: 10px;
+    text-decoration: none;
+    border-radius: 6px;
 }
 
 .sidebar a:hover {
-    background:#222;
+    background: #222;
 }
 
+/* MAIN */
 .main {
-    margin-left:240px;
-    padding:20px;
+    margin-left: 240px;
+    padding: 30px;
 }
 
+/* HERO */
 .hero {
-    font-size:32px;
-    font-weight:bold;
-    color:#00ff99;
+    font-size: 42px;
+    font-weight: bold;
+    color: #00ff99;
+    margin-bottom: 10px;
 }
+
+.subtext {
+    color: #aaa;
+    margin-bottom: 30px;
+}
+
+/* CARDS */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.card {
+    background: #151515;
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid #222;
+    transition: 0.2s;
+}
+
+.card:hover {
+    transform: scale(1.03);
+    border-color: #00ff99;
+}
+
+.card h3 {
+    margin: 0;
+    color: #fff;
+}
+
+.tag {
+    display: inline-block;
+    padding: 3px 8px;
+    font-size: 12px;
+    border-radius: 5px;
+    margin-top: 8px;
+}
+
+.live { background: red; }
+.upcoming { background: gold; color: black; }
+.finished { background: gray; }
 </style>
 
 </head>
@@ -241,9 +293,38 @@ body {
 </div>
 
 <div class="main">
-    <div class="hero">
-        G3l0M3ll0W's Stat Pad
+
+    <div class="hero">G3l0M3ll0W's Stat Pad</div>
+    <div class="subtext">Live esports tracker for Tier 1 matches (LoL • CS2 • Valorant • Dota 2)</div>
+
+    <div class="grid">
+
+        <div class="card">
+            <h3>🎮 League of Legends</h3>
+            <p>View live & upcoming LCK / LEC / LCS matches</p>
+            <span class="tag upcoming">TRACKED</span>
+        </div>
+
+        <div class="card">
+            <h3>🔫 CS2</h3>
+            <p>Major tournaments & pro circuit matches</p>
+            <span class="tag upcoming">TRACKED</span>
+        </div>
+
+        <div class="card">
+            <h3>⚡ Valorant</h3>
+            <p>VCT, Masters & Champions matches</p>
+            <span class="tag upcoming">TRACKED</span>
+        </div>
+
+        <div class="card">
+            <h3>🧠 Dota 2</h3>
+            <p>The International & regional leagues</p>
+            <span class="tag upcoming">TRACKED</span>
+        </div>
+
     </div>
+
 </div>
 
 </body>

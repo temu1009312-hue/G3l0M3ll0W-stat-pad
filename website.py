@@ -342,6 +342,20 @@ body {
     color:#aaa;
     font-size:12px;
 }
+
+.match {
+    padding:12px;
+    border-bottom:1px solid #222;
+}
+
+.match b {
+    color:#00ff99;
+}
+
+.small {
+    margin-top:3px;
+}
+
 </style>
 </head>
 
@@ -392,12 +406,55 @@ async function loadLive() {
 
             if (live.length === 0) return "No live matches";
 
-            return live.map(m => `
-                <div class="match">
-                    🔴 <b>${m.team1} vs ${m.team2}</b>
-                    <div class="small">${m.league}</div>
+            return live.map(m => {
+
+    let mapsHtml = "";
+
+    if (m.maps && m.maps.length > 0) {
+
+        mapsHtml = m.maps.map(mp => {
+
+            let status = "Pending";
+
+            if (mp.winner) {
+                status = mp.winner + " ✅";
+            }
+            else if (
+                mp.status &&
+                (
+                    mp.status.toLowerCase() === "running" ||
+                    mp.status.toLowerCase() === "live"
+                )
+            ) {
+                status = "LIVE 🔥";
+            }
+
+            return `
+                <div class="small">
+                    Map ${mp.map}: ${status}
                 </div>
-            `).join("");
+            `;
+        }).join("");
+    }
+
+    return `
+        <div class="match">
+
+            🔴 <b>
+                ${m.team1} ${m.score1 || 0}
+                -
+                ${m.score2 || 0} ${m.team2}
+            </b>
+
+            <div class="small">
+                ${m.league}
+            </div>
+
+            ${mapsHtml}
+
+        </div>
+    `;
+}).join("");
         }
 
         document.getElementById("cs2").innerHTML = render(cs2);

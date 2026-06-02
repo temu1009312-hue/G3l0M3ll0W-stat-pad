@@ -299,29 +299,37 @@ body {
 
     <div class="grid">
 
-        <div class="card">
-            <h3>🎮 League of Legends</h3>
-            <p>View live & upcoming LCK / LEC / LCS matches</p>
-            <span class="tag upcoming">TRACKED</span>
-        </div>
+        <a href="/lol" style="text-decoration:none;">
+<div class="card">
+    <h3>🎮 League of Legends</h3>
+    <p>View live & upcoming LCK / LEC / LCS matches</p>
+    <span class="tag upcoming">ENTER</span>
+</div>
+</a>
 
-        <div class="card">
-            <h3>🔫 CS2</h3>
-            <p>Major tournaments & pro circuit matches</p>
-            <span class="tag upcoming">TRACKED</span>
-        </div>
+        <a href="/cs2" style="text-decoration:none;">
+<div class="card">
+    <h3>🔫 CS2</h3>
+    <p>Major tournaments & pro circuit matches</p>
+    <span class="tag upcoming">ENTER</span>
+</div>
+</a>
 
-        <div class="card">
-            <h3>⚡ Valorant</h3>
-            <p>VCT, Masters & Champions matches</p>
-            <span class="tag upcoming">TRACKED</span>
-        </div>
+        <a href="/valorant" style="text-decoration:none;">
+<div class="card">
+    <h3>⚡ Valorant</h3>
+    <p>VCT, Masters & Champions matches</p>
+    <span class="tag upcoming">ENTER</span>
+</div>
+</a>
 
-        <div class="card">
-            <h3>🧠 Dota 2</h3>
-            <p>The International & regional leagues</p>
-            <span class="tag upcoming">TRACKED</span>
-        </div>
+        <a href="/dota" style="text-decoration:none;">
+<div class="card">
+    <h3>🧠 Dota 2</h3>
+    <p>The International & regional leagues</p>
+    <span class="tag upcoming">ENTER</span>
+</div>
+</a>
 
     </div>
 

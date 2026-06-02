@@ -66,7 +66,10 @@ def format_match(match):
         "time": match.get("scheduled_at", "TBD"),
         "league": match.get("league", {}).get("name", "Unknown"),
         "status": (match.get("status") or "UPCOMING").upper(),
-        "url": f"https://www.google.com/search?q={team1}+vs+{team2}+esports"
+        "slug": f"{team1}-vs-{team2}".replace(" ", "-").lower(),
+        "url": match.get("official_stream_url")
+               or match.get("stream_url")
+               or f"https://www.google.com/search?q={team1}+vs+{team2}+esports"
     }
 
 # =========================
@@ -361,20 +364,32 @@ body {
 
 <script>
 async function loadLive() {
-    const res = await fetch("/live_counts");
-    const counts = await res.json();
 
-    document.getElementById("cs2").innerHTML =
-        counts.cs2 > 0 ? "🔥 " + counts.cs2 + " live matches" : "No live matches";
+    const res = await fetch("/live_matches");
+    const data = await res.json();
 
-    document.getElementById("valorant").innerHTML =
-        counts.valorant > 0 ? "🔥 " + counts.valorant + " live matches" : "No live matches";
+    function render(list) {
 
-    document.getElementById("lol").innerHTML =
-        counts.lol > 0 ? "🔥 " + counts.lol + " live matches" : "No live matches";
+        if (!list || list.length === 0) {
+            return "No live matches";
+        }
 
-    document.getElementById("dota").innerHTML =
-        counts.dota > 0 ? "🔥 " + counts.dota + " live matches" : "No live matches";
+        return list.map(m => `
+            <div class="match">
+                <a href="${m.url}" target="_blank" style="color:white;text-decoration:none;">
+                    🔴 <b>${m.team1} vs ${m.team2}</b>
+                </a>
+                <div class="small">
+                    ${m.league}
+                </div>
+            </div>
+        `).join("");
+    }
+
+    document.getElementById("cs2").innerHTML = render(data.cs2);
+    document.getElementById("valorant").innerHTML = render(data.valorant);
+    document.getElementById("lol").innerHTML = render(data.lol);
+    document.getElementById("dota").innerHTML = render(data.dota);
 }
 
 loadLive();
@@ -405,6 +420,33 @@ def dota_page():
 def live_dashboard():
     return render_live_dashboard()
 
+@app.route("/live_matches")
+def live_matches():
+
+    def extract(game, matches):
+        output = []
+
+        for m in matches:
+
+            status = (m.get("status") or "").lower()
+
+            if status in ["running", "live"]:
+
+                fm = format_match(m)
+
+                if fm:
+                    fm["game"] = game
+                    output.append(fm)
+
+        return output
+
+    return jsonify({
+        "cs2": extract("CS2", get_cs2_matches()),
+        "valorant": extract("Valorant", get_valorant_matches()),
+        "lol": extract("League of Legends", get_lol_matches()),
+        "dota": extract("Dota 2", get_dota_matches())
+    })
+
 # =========================
 # JSON ENDPOINTS
 # =========================
@@ -424,6 +466,30 @@ def tier1_valorant():
 @app.route("/tier1/dota")
 def tier1_dota():
     return jsonify([format_match(m) for m in get_dota_matches() if format_match(m)])
+
+@app.route("/live_matches")
+def live_matches():
+
+    def get_live(matches):
+        live = []
+
+        for m in matches:
+            status = (m.get("status") or "").lower()
+
+            if status in ["running", "live"]:
+                fm = format_match(m)
+
+                if fm:
+                    live.append(fm)
+
+        return live
+
+    return jsonify({
+        "lol": get_live(get_lol_matches()),
+        "cs2": get_live(get_cs2_matches()),
+        "valorant": get_live(get_valorant_matches()),
+        "dota": get_live(get_dota_matches())
+    })
 
 # =========================
 # RUN

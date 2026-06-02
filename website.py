@@ -51,13 +51,47 @@ def format_match(match):
 
     opp = match.get("opponents") or []
 
-    team1 = "TBD"
-    team2 = "TBD"
+    if len(opp) < 2:
+        return None
 
-    if len(opp) > 0:
-        team1 = opp[0].get("opponent", {}).get("name", "TBD")
-    if len(opp) > 1:
-        team2 = opp[1].get("opponent", {}).get("name", "TBD")
+    team1 = opp[0].get("opponent", {}).get("name")
+    team2 = opp[1].get("opponent", {}).get("name")
+
+    if not team1 or not team2:
+        return None
+
+    results = match.get("results") or []
+
+    score1 = results[0].get("score", 0) if len(results) > 0 else 0
+    score2 = results[1].get("score", 0) if len(results) > 1 else 0
+
+    games = match.get("games") or []
+
+    maps = []
+
+    for i, g in enumerate(games, start=1):
+        maps.append({
+            "map": i,
+            "status": g.get("status", "pending"),
+            "winner": (
+                g.get("winner", {}).get("name")
+                if isinstance(g.get("winner"), dict)
+                else None
+            )
+        })
+
+    return {
+        "id": match.get("id"),
+        "team1": team1,
+        "team2": team2,
+        "time": match.get("scheduled_at", "TBD"),
+        "league": match.get("league", {}).get("name", "Unknown"),
+        "status": (match.get("status") or "UPCOMING").upper(),
+        "score1": score1,
+        "score2": score2,
+        "maps": maps,
+        "url": f"https://www.google.com/search?q={team1}+vs+{team2}+esports"
+    }
 
     # =========================
     # GLOBAL MATCH SCORE
@@ -341,41 +375,40 @@ body {
 
 <script>
 async function loadLive() {
-    const res = await fetch("/live_matches");
-    const data = await res.json();
+    try {
+        const [cs2, valorant, lol, dota] = await Promise.all([
+            fetch("/tier1/cs2").then(r => r.json()),
+            fetch("/tier1/valorant").then(r => r.json()),
+            fetch("/tier1/lol").then(r => r.json()),
+            fetch("/tier1/dota").then(r => r.json())
+        ]);
 
-    function render(list) {
-    if (!list || list.length === 0) {
-        return "No live matches";
+        function isLive(m) {
+            return m.status && m.status.toLowerCase() === "running";
+        }
+
+        function render(list) {
+            const live = list.filter(isLive);
+
+            if (live.length === 0) return "No live matches";
+
+            return live.map(m => `
+                <div class="match">
+                    🔴 <b>${m.team1} vs ${m.team2}</b>
+                    <div class="small">${m.league}</div>
+                </div>
+            `).join("");
+        }
+
+        document.getElementById("cs2").innerHTML = render(cs2);
+        document.getElementById("valorant").innerHTML = render(valorant);
+        document.getElementById("lol").innerHTML = render(lol);
+        document.getElementById("dota").innerHTML = render(dota);
+
+    } catch (err) {
+        console.error(err);
+        document.body.innerHTML = "❌ Failed to load live data (check backend)";
     }
-
-    return list.map(m => `
-        <div class="match">
-            <a href="${m.url}" target="_blank" style="color:white;text-decoration:none;">
-                🔴 <b>${m.team1} ${m.score1} - ${m.score2} ${m.team2}</b>
-            </a>
-
-            <div class="small">${m.league}</div>
-
-            <div style="margin-top:8px;font-size:12px;color:#aaa;">
-                ${
-                    m.maps && m.maps.length > 0
-                        ? m.maps.map(g =>
-                            `Map ${g.map}: ${
-                                g.winner ? "✔ " + g.winner : "⏳ Live / Pending"
-                            }`
-                        ).join("<br>")
-                        : "No map data yet"
-                }
-            </div>
-        </div>
-    `).join("");
-}
-
-    document.getElementById("cs2").innerHTML = render(data.cs2);
-    document.getElementById("valorant").innerHTML = render(data.valorant);
-    document.getElementById("lol").innerHTML = render(data.lol);
-    document.getElementById("dota").innerHTML = render(data.dota);
 }
 
 loadLive();
@@ -386,25 +419,43 @@ setInterval(loadLive, 15000);
 </html>
 """
 
+def sort_matches(matches):
+    return sorted(
+        matches,
+        key=lambda x: x.get("time", "")
+    )
+
 # =========================
 # JSON ENDPOINTS
 # =========================
 
 @app.route("/tier1/lol")
 def tier1_lol():
-    return jsonify([format_match(m) for m in get_lol_matches() if format_match(m)])
+    matches = [format_match(m) for m in get_lol_matches()]
+    matches = [m for m in matches if m is not None]
+    matches = sort_matches(matches)
+    return jsonify(matches)
 
 @app.route("/tier1/cs2")
 def tier1_cs2():
-    return jsonify([format_match(m) for m in get_cs2_matches() if format_match(m)])
+    matches = [format_match(m) for m in get_cs2_matches()]
+    matches = [m for m in matches if m is not None]
+    matches = sort_matches(matches)
+    return jsonify(matches)
 
 @app.route("/tier1/valorant")
 def tier1_valorant():
-    return jsonify([format_match(m) for m in get_valorant_matches() if format_match(m)])
+    matches = [format_match(m) for m in get_valorant_matches()]
+    matches = [m for m in matches if m is not None]
+    matches = sort_matches(matches)
+    return jsonify(matches)
 
 @app.route("/tier1/dota")
 def tier1_dota():
-    return jsonify([format_match(m) for m in get_dota_matches() if format_match(m)])
+    matches = [format_match(m) for m in get_dota_matches()]
+    matches = [m for m in matches if m is not None]
+    matches = sort_matches(matches)
+    return jsonify(matches)
 
 # =========================
 # RUN

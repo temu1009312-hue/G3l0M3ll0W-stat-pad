@@ -226,6 +226,7 @@ body {
 <div class="sidebar">
     <h2>Stat Pad</h2>
     <a href="/">Home</a>
+    <a href="/live-dashboard">🔴 Live Dashboard</a>
     <a href="/lol">LoL</a>
     <a href="/cs2">CS2</a>
     <a href="/valorant">Valorant</a>
@@ -270,6 +271,120 @@ body {
 </html>
 """
 
+def render_live_dashboard():
+    return """
+<!DOCTYPE html>
+<html>
+<head>
+<title>Live Esports Dashboard</title>
+
+<style>
+body {
+    margin:0;
+    font-family:Arial;
+    background:#0a0a0a;
+    color:white;
+}
+
+.header {
+    padding:20px;
+    font-size:28px;
+    font-weight:bold;
+    color:#00ff99;
+}
+
+.container {
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap:15px;
+    padding:20px;
+}
+
+.card {
+    background:#151515;
+    border:1px solid #222;
+    border-radius:12px;
+    padding:15px;
+}
+
+.live {
+    color:red;
+    font-weight:bold;
+    animation:pulse 1.2s infinite;
+}
+
+@keyframes pulse {
+    0% {opacity:1;}
+    50% {opacity:0.4;}
+    100% {opacity:1;}
+}
+
+.match {
+    padding:10px;
+    border-bottom:1px solid #222;
+}
+
+.small {
+    color:#aaa;
+    font-size:12px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">🔴 LIVE ESPORTS DASHBOARD</div>
+
+<div class="container">
+
+    <div class="card">
+        <div class="live">CS2 LIVE</div>
+        <div id="cs2">Loading...</div>
+    </div>
+
+    <div class="card">
+        <div class="live">Valorant LIVE</div>
+        <div id="valorant">Loading...</div>
+    </div>
+
+    <div class="card">
+        <div class="live">League of Legends LIVE</div>
+        <div id="lol">Loading...</div>
+    </div>
+
+    <div class="card">
+        <div class="live">Dota 2 LIVE</div>
+        <div id="dota">Loading...</div>
+    </div>
+
+</div>
+
+<script>
+async function loadLive() {
+    const res = await fetch("/live_counts");
+    const counts = await res.json();
+
+    document.getElementById("cs2").innerHTML =
+        counts.cs2 > 0 ? "🔥 " + counts.cs2 + " live matches" : "No live matches";
+
+    document.getElementById("valorant").innerHTML =
+        counts.valorant > 0 ? "🔥 " + counts.valorant + " live matches" : "No live matches";
+
+    document.getElementById("lol").innerHTML =
+        counts.lol > 0 ? "🔥 " + counts.lol + " live matches" : "No live matches";
+
+    document.getElementById("dota").innerHTML =
+        counts.dota > 0 ? "🔥 " + counts.dota + " live matches" : "No live matches";
+}
+
+loadLive();
+setInterval(loadLive, 15000);
+</script>
+
+</body>
+</html>
+"""
+
 @app.route("/lol")
 def lol_page():
     return render_matches("League of Legends", "/tier1/lol")
@@ -285,6 +400,10 @@ def valorant_page():
 @app.route("/dota")
 def dota_page():
     return render_matches("Dota 2", "/tier1/dota")
+
+@app.route("/live-dashboard")
+def live_dashboard():
+    return render_live_dashboard()
 
 # =========================
 # JSON ENDPOINTS

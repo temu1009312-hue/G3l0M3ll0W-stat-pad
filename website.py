@@ -260,10 +260,10 @@ body {
         <p>Live LoL esports tracker</p>
     </a>
 
-    <a href="https://cyberscore.me.uk/" class="card" target="_blank">
-        🧠 Dota 2 (CyberScore)
-        <p>Stats & match tracking</p>
-    </a>
+    <a href="https://cyberscore.live/en/matches/" class="card" target="_blank">
+    🧠 Dota 2 (CyberScore)
+    <p>Stats & match tracking</p>
+</a>
 
 </div>
 

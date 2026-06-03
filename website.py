@@ -17,28 +17,50 @@ PANDASCORE_TOKEN = os.environ.get("PANDASCORE_TOKEN")
 def headers():
     return {"Authorization": f"Bearer {PANDASCORE_TOKEN}"}
 
-def get_lol_matches():
+def get_lol_live():
+
     return requests.get(
-        "https://api.pandascore.co/lol/matches",
+
+        "https://api.pandascore.co/lol/matches/running",
+
         headers=headers()
+
     ).json()
 
-def get_cs2_matches():
+
+
+def get_cs2_live():
+
     return requests.get(
-        "https://api.pandascore.co/csgo/matches",
+
+        "https://api.pandascore.co/csgo/matches/running",
+
         headers=headers()
+
     ).json()
 
-def get_valorant_matches():
+
+
+def get_valorant_live():
+
     return requests.get(
-        "https://api.pandascore.co/valorant/matches",
+
+        "https://api.pandascore.co/valorant/matches/running",
+
         headers=headers()
+
     ).json()
 
-def get_dota_matches():
+
+
+def get_dota_live():
+
     return requests.get(
-        "https://api.pandascore.co/dota2/matches",
+
+        "https://api.pandascore.co/dota2/matches/running",
+
         headers=headers()
+
     ).json()
 
 # =========================
@@ -90,7 +112,7 @@ def format_match(match):
         "score1": score1,
         "score2": score2,
         "maps": maps,
-        "url": f"https://www.google.com/search?q={team1}+vs+{team2}+esports"
+        "url": f"/match/{match.get('id')}"
     }
 
     # =========================
@@ -475,6 +497,32 @@ setInterval(loadLive, 15000);
 </body>
 </html>
 """
+
+@app.route("/match/<int:match_id>")
+def match_page(match_id):
+
+    url = f"https://api.pandascore.co/matches/{match_id}"
+
+    match = requests.get(
+        url,
+        headers=headers()
+    ).json()
+
+    return f"""
+    <html>
+    <body style="background:#0a0a0a;color:white;font-family:Arial">
+
+        <h1>
+            {match.get("name","Match")}
+        </h1>
+
+        <pre>
+{match}
+        </pre>
+
+    </body>
+    </html>
+    """
 
 def sort_matches(matches):
     return sorted(

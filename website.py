@@ -17,50 +17,28 @@ PANDASCORE_TOKEN = os.environ.get("PANDASCORE_TOKEN")
 def headers():
     return {"Authorization": f"Bearer {PANDASCORE_TOKEN}"}
 
-def get_lol_live():
-
+def get_lol_matches():
     return requests.get(
-
-        "https://api.pandascore.co/lol/matches/running",
-
+        "https://api.pandascore.co/lol/matches",
         headers=headers()
-
     ).json()
 
-
-
-def get_cs2_live():
-
+def get_cs2_matches():
     return requests.get(
-
-        "https://api.pandascore.co/csgo/matches/running",
-
+        "https://api.pandascore.co/csgo/matches",
         headers=headers()
-
     ).json()
 
-
-
-def get_valorant_live():
-
+def get_valorant_matches():
     return requests.get(
-
-        "https://api.pandascore.co/valorant/matches/running",
-
+        "https://api.pandascore.co/valorant/matches",
         headers=headers()
-
     ).json()
 
-
-
-def get_dota_live():
-
+def get_dota_matches():
     return requests.get(
-
-        "https://api.pandascore.co/dota2/matches/running",
-
+        "https://api.pandascore.co/dota2/matches",
         headers=headers()
-
     ).json()
 
 # =========================

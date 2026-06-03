@@ -486,32 +486,35 @@ setInterval(loadLive, 15000);
 def match_page(match_id):
 
     game = requests.get(
-        f"https://api.pandascore.co/csgo/matches/{match_id}",
+        f"https://api.pandascore.co/matches/{match_id}",
         headers=headers()
     ).json()
 
-    team1 = game["opponents"][0]["opponent"]["name"]
-    team2 = game["opponents"][1]["opponent"]["name"]
+    opp = game.get("opponents")
 
-    score1 = game["results"][0]["score"] if len(game["results"]) > 0 else 0
-    score2 = game["results"][1]["score"] if len(game["results"]) > 1 else 0
+    # ❌ safety check (prevents crash)
+    if not opp or len(opp) < 2:
+        return "<h1 style='color:white;background:black'>Match data not available</h1>"
+
+    team1 = opp[0]["opponent"].get("name", "TBD")
+    team2 = opp[1]["opponent"].get("name", "TBD")
+
+    logo1 = opp[0]["opponent"].get("image_url")
+    logo2 = opp[1]["opponent"].get("image_url")
+
+    results = game.get("results") or []
+
+    score1 = results[0].get("score", 0) if len(results) > 0 else 0
+    score2 = results[1].get("score", 0) if len(results) > 1 else 0
 
     maps_html = ""
 
     for i, g in enumerate(game.get("games", []), start=1):
 
-        winner = "TBD"
-
-        if g.get("winner", {}).get("id"):
-            winner = "Finished"
-
         maps_html += f"""
-        <div style="padding:10px;border-bottom:1px solid #222;">
-            Map {i}
-            <br>
-            Status: {g.get("status")}
-            <br>
-            Winner: {winner}
+        <div style="padding:10px;border:1px solid #222;margin:10px 0;">
+            <b>Map {i}</b><br>
+            Status: {g.get("status","unknown")}
         </div>
         """
 
@@ -519,18 +522,19 @@ def match_page(match_id):
     <html>
     <body style="background:#0a0a0a;color:white;font-family:Arial;padding:20px">
 
-        <h1>{team1} vs {team2}</h1>
+        <div style="display:flex;align-items:center;gap:15px">
 
-        <h2>
-            {score1} - {score2}
-        </h2>
+            <img src="{logo1}" width="50">
+            <h2>{team1}</h2>
 
-        <p>
-            {game.get("league",{}).get("name","Unknown")}
-        </p>
+            <h1 style="margin:0 20px">{score1} - {score2}</h1>
+
+            <h2>{team2}</h2>
+            <img src="{logo2}" width="50">
+
+        </div>
 
         <h3>Maps</h3>
-
         {maps_html}
 
     </body>

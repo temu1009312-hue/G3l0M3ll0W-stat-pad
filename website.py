@@ -398,6 +398,7 @@ body {
 <script>
 async function loadLive() {
     try {
+
         const [cs2, valorant, lol, dota] = await Promise.all([
             fetch("/tier1/cs2").then(r => r.json()),
             fetch("/tier1/valorant").then(r => r.json()),
@@ -416,74 +417,52 @@ async function loadLive() {
 
             return live.map(m => {
 
-    let mapsHtml = "";
+                let mapsHtml = "";
 
-    if (m.maps && m.maps.length > 0) {
+                if (m.maps && m.maps.length > 0) {
 
-        mapsHtml = m.maps.map(mp => {
+                    mapsHtml = m.maps.map(mp => {
 
-            let status = "Pending";
+                        let status = "Pending";
 
-            if (mp.winner) {
-                status = mp.winner + " ✅";
-            }
-            else if (
-                mp.status &&
-                (
-                    mp.status.toLowerCase() === "running" ||
-                    mp.status.toLowerCase() === "live"
-                )
-            ) {
-                status = "LIVE 🔥";
-            }
+                        if (mp.winner) {
+                            status = "FINISHED ✅";
+                        }
+                        else if (mp.status === "running") {
+                            status = "LIVE 🔥";
+                        }
 
-            return `
-                <div class="small">
-                    Map ${mp.map}: ${status}
-                </div>
-            `;
-        }).join("");
-    }
+                        return `
+                            <div class="small">
+                                Map ${mp.map}: ${status}
+                            </div>
+                        `;
+                    }).join("");
+                }
 
-    return `
-    <div class="match">
+                return `
+                    <div class="match">
 
-        🔴 <b>
-            ${m.team1} ${m.score1 || 0}
-            - 
-            ${m.score2 || 0} ${m.team2}
-        </b>
+                        🔴 <b>
+                            ${m.team1} ${m.score1 || 0}
+                            - 
+                            ${m.score2 || 0} ${m.team2}
+                        </b>
 
-        <div class="small">
-            ${m.league}
-        </div>
+                        <div class="small">
+                            ${m.league}
+                        </div>
 
-        <div class="small">
-            🕒 ${m.time ? new Date(m.time).toLocaleString() : "TBD"}
-        </div>
+                        <div class="small">
+                            🕒 ${m.time ? new Date(m.time).toLocaleTimeString() : "TBD"}
+                        </div>
 
-        <div class="small">
-            Status: ${m.status}
-        </div>
+                        ${mapsHtml}
 
-        ${m.maps ? m.maps.map(mp => {
-
-            let status = mp.status;
-
-            if (mp.status === "running") status = "LIVE 🔥";
-            if (mp.winner) status = "FINISHED ✅";
-
-            return `
-                <div class="small">
-                    <a href="/map/${m.id}/${mp.map}" style="color:#00ff99">
-                        Map ${mp.map}: ${status}
-                    </a>
-                </div>
-            `;
-        }).join("") : ""}
-
-    </div>
-`;
+                    </div>
+                `;
+            }).join("");
+        }
 
         document.getElementById("cs2").innerHTML = render(cs2);
         document.getElementById("valorant").innerHTML = render(valorant);
@@ -492,12 +471,11 @@ async function loadLive() {
 
     } catch (err) {
         console.error(err);
-        document.body.innerHTML = "❌ Failed to load live data (check backend)";
     }
 }
 
 loadLive();
-setInterval(loadLive, 15000);
+setInterval(loadLive, 5000);
 </script>
 
 </body>

@@ -88,12 +88,14 @@ def format_match(match):
     "team1_logo": opp[0]["opponent"].get("image_url"),
     "team2_logo": opp[1]["opponent"].get("image_url"),
 
-    "time": match.get("scheduled_at", "TBD"),
+    "time": match.get("scheduled_at"),
+    "status": (match.get("status") or "UNKNOWN").upper(),
+
     "league": match.get("league", {}).get("name", "Unknown"),
-    "status": (match.get("status") or "UPCOMING").upper(),
 
     "score1": score1,
     "score2": score2,
+
     "maps": maps,
 
     "url": f"/match/{match.get('id')}"
@@ -444,24 +446,44 @@ async function loadLive() {
     }
 
     return `
-        <div class="match">
+    <div class="match">
 
-            🔴 <b>
-                ${m.team1} ${m.score1 || 0}
-                -
-                ${m.score2 || 0} ${m.team2}
-            </b>
+        🔴 <b>
+            ${m.team1} ${m.score1 || 0}
+            - 
+            ${m.score2 || 0} ${m.team2}
+        </b>
 
-            <div class="small">
-                ${m.league}
-            </div>
-
-            ${mapsHtml}
-
+        <div class="small">
+            ${m.league}
         </div>
-    `;
-}).join("");
-        }
+
+        <div class="small">
+            🕒 ${m.time ? new Date(m.time).toLocaleString() : "TBD"}
+        </div>
+
+        <div class="small">
+            Status: ${m.status}
+        </div>
+
+        ${m.maps ? m.maps.map(mp => {
+
+            let status = mp.status;
+
+            if (mp.status === "running") status = "LIVE 🔥";
+            if (mp.winner) status = "FINISHED ✅";
+
+            return `
+                <div class="small">
+                    <a href="/map/${m.id}/${mp.map}" style="color:#00ff99">
+                        Map ${mp.map}: ${status}
+                    </a>
+                </div>
+            `;
+        }).join("") : ""}
+
+    </div>
+`;
 
         document.getElementById("cs2").innerHTML = render(cs2);
         document.getElementById("valorant").innerHTML = render(valorant);
@@ -578,6 +600,58 @@ def tier1_dota():
     matches = [m for m in matches if m is not None]
     matches = sort_matches(matches)
     return jsonify(matches)
+
+@app.route("/map/<int:match_id>/<int:map_id>")
+def map_page(match_id, map_id):
+
+    game = requests.get(
+        f"https://api.pandascore.co/matches/{match_id}",
+        headers=headers()
+    ).json()
+
+    if not game.get("games"):
+        return "<h1 style='color:white'>No map data</h1>"
+
+    map_data = None
+
+    for g in game["games"]:
+        if g.get("position") == map_id:
+            map_data = g
+            break
+
+    if not map_data:
+        return "<h1 style='color:white'>Map not found</h1>"
+
+    players = map_data.get("players_stats") or []
+
+    leaderboard = ""
+
+    if players:
+        for p in players:
+            leaderboard += f"""
+            <div style="padding:10px;border-bottom:1px solid #222">
+                <b>{p.get('player',{}).get('name','Unknown')}</b><br>
+                K: {p.get('kills',0)} | D: {p.get('deaths',0)} | A: {p.get('assists',0)}
+            </div>
+            """
+
+    else:
+        leaderboard = "<p>No detailed stats available for this map.</p>"
+
+    return f"""
+    <html>
+    <body style="background:#0a0a0a;color:white;font-family:Arial;padding:20px">
+
+        <h1>Map {map_id}</h1>
+        <h3>Status: {map_data.get('status')}</h3>
+
+        <h2>Player Stats</h2>
+
+        {leaderboard}
+
+    </body>
+    </html>
+    """
 
 # =========================
 # RUN

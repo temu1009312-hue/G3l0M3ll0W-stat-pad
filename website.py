@@ -81,17 +81,23 @@ def format_match(match):
         })
 
     return {
-        "id": match.get("id"),
-        "team1": team1,
-        "team2": team2,
-        "time": match.get("scheduled_at", "TBD"),
-        "league": match.get("league", {}).get("name", "Unknown"),
-        "status": (match.get("status") or "UPCOMING").upper(),
-        "score1": score1,
-        "score2": score2,
-        "maps": maps,
-        "url": f"/match/{match.get('id')}"
-    }
+    "id": match.get("id"),
+    "team1": team1,
+    "team2": team2,
+
+    "team1_logo": opp[0]["opponent"].get("image_url"),
+    "team2_logo": opp[1]["opponent"].get("image_url"),
+
+    "time": match.get("scheduled_at", "TBD"),
+    "league": match.get("league", {}).get("name", "Unknown"),
+    "status": (match.get("status") or "UPCOMING").upper(),
+
+    "score1": score1,
+    "score2": score2,
+    "maps": maps,
+
+    "url": f"/match/{match.get('id')}"
+}
 
     # =========================
     # GLOBAL MATCH SCORE
@@ -479,24 +485,53 @@ setInterval(loadLive, 15000);
 @app.route("/match/<int:match_id>")
 def match_page(match_id):
 
-    url = f"https://api.pandascore.co/matches/{match_id}"
-
-    match = requests.get(
-        url,
+    game = requests.get(
+        f"https://api.pandascore.co/csgo/matches/{match_id}",
         headers=headers()
     ).json()
 
+    team1 = game["opponents"][0]["opponent"]["name"]
+    team2 = game["opponents"][1]["opponent"]["name"]
+
+    score1 = game["results"][0]["score"] if len(game["results"]) > 0 else 0
+    score2 = game["results"][1]["score"] if len(game["results"]) > 1 else 0
+
+    maps_html = ""
+
+    for i, g in enumerate(game.get("games", []), start=1):
+
+        winner = "TBD"
+
+        if g.get("winner", {}).get("id"):
+            winner = "Finished"
+
+        maps_html += f"""
+        <div style="padding:10px;border-bottom:1px solid #222;">
+            Map {i}
+            <br>
+            Status: {g.get("status")}
+            <br>
+            Winner: {winner}
+        </div>
+        """
+
     return f"""
     <html>
-    <body style="background:#0a0a0a;color:white;font-family:Arial">
+    <body style="background:#0a0a0a;color:white;font-family:Arial;padding:20px">
 
-        <h1>
-            {match.get("name","Match")}
-        </h1>
+        <h1>{team1} vs {team2}</h1>
 
-        <pre>
-{match}
-        </pre>
+        <h2>
+            {score1} - {score2}
+        </h2>
+
+        <p>
+            {game.get("league",{}).get("name","Unknown")}
+        </p>
+
+        <h3>Maps</h3>
+
+        {maps_html}
 
     </body>
     </html>
